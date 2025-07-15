@@ -1,0 +1,8 @@
+N = 9
+problem_type = 5
+DE_type = 2
+eval_type = 4
+iter_max = 150
+m = 100
+run_max = 1
+obj_optima = 0.14318599087434924

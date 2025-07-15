@@ -240,7 +240,14 @@ class cst:
     def FF_ub(self, x):
         return self.FF(x) - self.lowerupper[11][1]
 
-    def const_cal_jDE_(self):
+    def const_cal_jDE_(self, i, z1_mol, z1, p_total, T, F_in):
+        def update_call(method):
+            self.z1_mol = z1_mol[i]
+            self.T = T[i]
+            self.p_total = p_total[i]
+            self.z1 = z1[i]
+            self.F_in = F_in[i]
+            method()
         # return [self.p1_lb, self.p1_ub,\
         #         self.p2_lb, self.p2_ub,\
         #         self.gamma1_lb, self.gamma1_ub,\
@@ -253,8 +260,8 @@ class cst:
         #         self.F_gas_lb, self.F_gas_ub,\
         #         self.yield__lb, self.yield__ub,\
         #         self.FF_lb, self.FF_ub]
-        return [self.x1_lb, self.x1_ub,\
-                self.y1_lb, self.y1_ub]
+        return [lambda: update_call(self.x1_lb), lambda: update_call(self.x1_ub),\
+                lambda: update_call(self.y1_lb), lambda: update_call(self.y1_ub)]
         # return [self.p1_lb, self.p1_ub,\
         #         self.x1_lb, self.x1_ub,\
         #         self.y1_lb, self.y1_ub]
@@ -262,14 +269,18 @@ class cst:
     def get_each_const_jDE(self, fitting_data, M1, M2): #ステップ毎に制約条件を作成してappend
         z1_mol, z1, p_total, T, F_in, yield_act = opt_problem.load_param(fitting_data, M1, M2, conversion=self.conversion)
         constr = []
+        #ローカル変数iを作る
+
         for i in range(len(z1_mol)):
+            "修正中"
             self.z1_mol = z1_mol[i]
             self.T = T[i]
             self.p_total = p_total[i]
             self.z1 = z1[i]
             self.F_in = F_in[i]
             # self.yield_act = yield_act[i]
-            constr.append(self.const_cal_jDE_())
+            constr.append(self.const_cal_jDE_(i, z1_mol, z1, p_total, T, F_in))
+            "修正中"
         return np.concatenate(np.array(constr))
 
 def get_each_yield_cal(z1_mol, z1, p_total, M1, M2, F_in, S, T):
